@@ -52,7 +52,7 @@ public final class LogUtils {
         LogUtils.exclusions.addAll(exclusions);
     }
 
-    public synchronized LogUtils soutLine() {
+    public synchronized LogUtils line() {
         String line = getLine(lineLength);
         builder.append(line).append("\n");
         return LOGGER;
@@ -215,7 +215,7 @@ public final class LogUtils {
             }
         }
 
-        System.out.println(filtered.toString());
+        System.out.println(filtered.toString().isEmpty() ? builder.toString() : filtered.toString());
         history.append(builder.toString());
         builder.delete(0, builder.toString().length());
     }

@@ -5,9 +5,9 @@ import lombok.NonNull;
 import javax.swing.text.JTextComponent;
 
 public abstract class JTextComponentNode<J extends JTextComponent> extends JComponentNode<J> {
-    public JTextComponentNode(@NonNull final J jComponent,
+    public JTextComponentNode(@NonNull final J jTextComponent,
                               @NonNull final String nodeName)
     {
-        super(jComponent, nodeName);
+        super(jTextComponent, nodeName);
     }
 }

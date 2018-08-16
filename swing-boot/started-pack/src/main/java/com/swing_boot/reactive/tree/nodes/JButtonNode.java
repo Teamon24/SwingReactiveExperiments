@@ -27,12 +27,10 @@ public abstract class JButtonNode extends JComponentNode<JButton> {
         super.it.addActionListener(actionListener);
     }
 
-    public ActionListener getDispatcher(@NonNull final Set<Pair<Events, Object>> dispatchables) {
-        return new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                for (Pair<Events, Object> dispatchable : dispatchables) {
-                    JButtonNode.super.dispatch(dispatchable.getLeft(), dispatchable.getRight());
-                }
+    public ActionListener getDispatcher(@NonNull final Set<Pair<Events, Object>> dispatchibles) {
+        return actionListener -> {
+            for (Pair<Events, Object> dispatchible : dispatchibles) {
+                JButtonNode.super.dispatch(JButtonNode.this, dispatchible.getLeft(), dispatchible.getRight());
             }
         };
     }

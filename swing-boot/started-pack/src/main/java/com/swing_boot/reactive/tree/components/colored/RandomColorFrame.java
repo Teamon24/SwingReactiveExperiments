@@ -26,21 +26,23 @@ public class RandomColorFrame extends JFrameNode<JFrame> {
     }
 
     public RandomColorFrame(@NonNull final JFrame jFrame,
-                            @NonNull final String nodeName) {
+                            @NonNull final String nodeName)
+    {
         super(jFrame, nodeName);
     }
 
 
     @Override
-    public void update(Events event, Object value) {
-        if (event instanceof ChangeColorEvents) {
-            super.it.setTitle(this.name + "<-" + String.valueOf(value));
-            super.it.setForeground(Color.WHITE);
-            super.it.setBackground(((ChangeColorEvents) event).color);
-            LogUtils.LOGGER.soutln(this, "update", event, value);
+    public void update(Events e, Object v) {
+        if (e instanceof ChangeColorEvents) {
+            super.it.setTitle(this.name + "~" + String.valueOf(v));
+            if (((ChangeColorEvents) e).color == Color.WHITE) {
+                super.it.setForeground(Color.BLACK);
+            } else {
+                super.it.setForeground(Color.WHITE);
+            }
+            super.it.setBackground(((ChangeColorEvents) e).color);
+            LogUtils.LOGGER.soutln(this, "update", e, v);
         }
-
-
     }
-
 }

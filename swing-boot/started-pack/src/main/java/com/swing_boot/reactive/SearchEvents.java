@@ -6,7 +6,6 @@ public enum SearchEvents implements Events {
     SEARCH_NODE_BY_NAME,
     TYPE;
 
-    @Override
     public Events getType() {
         return TYPE;
     }

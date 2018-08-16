@@ -5,5 +5,5 @@ import com.swing_boot.reactive.Events;
 
 public interface Observer {
 
-    void update(Events event, Object value);
+    void update(Events e, Object v);
 }

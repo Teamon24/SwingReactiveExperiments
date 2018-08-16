@@ -30,28 +30,32 @@ public class RandomColorScrollPane extends JScrollPaneNode<JScrollPane> {
     }
 
     @Override
-    public void update(Events event, Object value) {
-        if (value instanceof Integer && event instanceof ChangeColorEvents) {
-            final Integer i = (Integer) value;
-            final ChangeColorEvents changeColorEvent = (ChangeColorEvents) event;
+    public void update(Events e, Object v) {
+        if (v instanceof Integer && e instanceof ChangeColorEvents) {
+            final Integer i = (Integer) v;
+            final ChangeColorEvents changeColorEvent = (ChangeColorEvents) e;
             super.it.setBackground(changeColorEvent.color);
-            super.it.setForeground(Color.WHITE);
+            if (((ChangeColorEvents) e).color == Color.WHITE) {
+                super.it.setForeground(Color.BLACK);
+            } else {
+                super.it.setForeground(Color.WHITE);
+            }
             this.color = changeColorEvent.color;
 
             this.border.setTitleColor(Color.WHITE);
             this.border.setTitle(super.name + " <- " + i);
-            LogUtils.LOGGER.soutln(this, "update", event, value);
+            LogUtils.LOGGER.soutln(this, "update", e, v);
         }
 
-        if (event == SearchEvents.SEARCH_NODE_BY_NAME && value instanceof String) {
-            final String searchingText = String.valueOf(value);
+        if (e == SearchEvents.SEARCH_NODE_BY_NAME && v instanceof String) {
+            final String searchingText = String.valueOf(v);
             if (!searchingText.isEmpty()) {
                 final String text = this.border.getTitle();
                 final boolean contains = text.contains(searchingText);
                 final boolean startsWith = text.startsWith(searchingText);
                 if (contains && startsWith) {
                     super.it.setBackground(FOUND_BACKGROUND);
-                    LogUtils.LOGGER.soutln(this, "update", event, value);
+                    LogUtils.LOGGER.soutln(this, "update", e, v);
                 } else {
                     super.it.setBackground(this.color);
                 }

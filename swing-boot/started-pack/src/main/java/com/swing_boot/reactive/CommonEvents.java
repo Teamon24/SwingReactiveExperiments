@@ -3,11 +3,9 @@ package com.swing_boot.reactive;
 public enum CommonEvents implements Events {
 
     OPEN,
-    OPEN_RANDOM_COLOR_FRAME,
-    PRINT,
-    TYPE;
+    PRINT_APP_ROOT_INFO,
+    TYPE, CLEAR_COLOR;
 
-        @Override
         public Events getType() {
             return CommonEvents.TYPE;
         }

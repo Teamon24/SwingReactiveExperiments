@@ -40,7 +40,7 @@ public final class TreeUtils {
         return emittedEvents;
     }
 
-    public static boolean isEventConsumable(Collection<Events> grandChildrenConsumableEvents, Events event) {
+    public static boolean isEventConsumable(Collection<? extends Events> grandChildrenConsumableEvents, Events event) {
         for (Events grandChildEvent : grandChildrenConsumableEvents) {
             if (event == grandChildEvent) {
                 return true;

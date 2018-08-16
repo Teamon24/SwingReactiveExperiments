@@ -14,13 +14,13 @@ public class PrintEditorPane extends AbstractObserverComponentWrapper<JEditorPan
         super(new JEditorPane());
         super.component.setEditable(true);
         super.component.setText("Initial text");
-        super.observe(CommonEvents.PRINT);
+        super.observe(CommonEvents.PRINT_APP_ROOT_INFO);
     }
 
     @Override
     public void update(Object value, Events event) {
         super.update(value, event);
-        if (event == CommonEvents.PRINT) {
+        if (event == CommonEvents.PRINT_APP_ROOT_INFO) {
             if (text == null) {
                 text = (String) value;
             } else {

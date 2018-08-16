@@ -36,50 +36,45 @@ public class RandomColorButton extends JButtonNode {
 
     private RandomColorButton(@NonNull final String nodeName) {
         super(new JButton(), nodeName);
-        super.it.setSize(new Dimension(80, 80));
         this.number = counter.get();
         super.it.setText("#" + this.number);
-        super.addDispatcher(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Object message = 1;
-                final HashSet<Pair<Events, Object>> pairs = Sets.newHashSet(Pair.of((Events) new ChangeColorEvents(new Color(34, 34, 34)), message));
-                final ActionListener dispatcher = RandomColorButton.super.getDispatcher(pairs);
-                dispatcher.actionPerformed(e);
-            }
+        super.addDispatcher(actionListener -> {
+            Object message = 1;
+            final HashSet<Pair<Events, Object>> pairs = Sets.newHashSet(Pair.of((Events) new ChangeColorEvents(new Color(34, 34, 34)), message));
+            final ActionListener dispatcher = RandomColorButton.super.getDispatcher(pairs);
+            dispatcher.actionPerformed(actionListener);
         });
     }
 
-    public void update(Events event, Object value) {
-        if (value instanceof Integer && event instanceof ChangeColorEvents) {
-            final Integer i = (Integer) value;
-            super.it.setText("#" + this.number + " <- " + String.valueOf(i));
-            super.it.setForeground(Color.WHITE);
-            this.color = ((ChangeColorEvents) event).color;
+    public void update(Events e, Object v) {
+        if (v instanceof Integer && e instanceof ChangeColorEvents) {
+            final Integer i = (Integer) v;
+            super.it.setText("b#" + this.number + "~" + String.valueOf(i));
+            if (((ChangeColorEvents) e).color == Color.WHITE) {
+                super.it.setForeground(Color.BLACK);
+            } else {
+                super.it.setForeground(Color.WHITE);
+            }
+            this.color = ((ChangeColorEvents) e).color;
             super.it.setBackground(this.color);
-            LogUtils.LOGGER.soutln(this, "update", event, value);
+            LogUtils.LOGGER.soutln(this, "update", e, v);
         }
 
-        if (event == SearchEvents.SEARCH_NODE_BY_NAME && value instanceof String) {
-            final String searchingText = String.valueOf(value);
+        if (e == SearchEvents.SEARCH_NODE_BY_NAME && v instanceof String) {
+            final String searchingText = String.valueOf(v);
             if (!searchingText.isEmpty()) {
                 final String text = super.it.getText();
                 final boolean contains = text.contains(searchingText);
                 final boolean startsWith = text.startsWith(searchingText);
                 if (contains && startsWith) {
                     super.it.setBackground(FOUND_BACKGROUND);
-                    LogUtils.LOGGER.soutln(this, "update", event, value);
+                    LogUtils.LOGGER.soutln(this, "update", e, v);
                 } else {
                     super.it.setBackground(this.color);
                 }
             } else {
                 super.it.setBackground(this.color);
             }
-
-
         }
-
-
     }
-
-
 }

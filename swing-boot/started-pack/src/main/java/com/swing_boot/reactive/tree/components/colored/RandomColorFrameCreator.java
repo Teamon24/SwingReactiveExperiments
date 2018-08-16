@@ -15,7 +15,7 @@ import static com.intellij.uiDesigner.core.GridConstraints.*;
 public class RandomColorFrameCreator {
 
     public static RandomColorFrame createTestableFrame(final int treeDepth) {
-        final JPanelNode mainPanelNode = new RandomColorPanel("main_panel_" + ++RandomColorPanel.counter);
+        final JPanelNode mainPanelNode = new RandomColorPanel();
         mainPanelNode.setLayout(new GridLayoutManager(1,1));
 
         createJPanelsBranch(mainPanelNode, treeDepth);
@@ -41,7 +41,7 @@ public class RandomColorFrameCreator {
         final JButtonNode colorButton2  = new RandomColorButton();
         colorButton2.it.setPreferredSize(new Dimension(45, 45));
 
-        jPanelNode.setLayout(new GridLayoutManager(2,2, new Insets(0, 0, 0, 0), 5, 10));
+        jPanelNode.setLayout(new GridLayoutManager(2,2, new Insets(0, 0, 0, 0), 0, 0));
         jPanelNode.add(colorButton2, new GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED, null, null, null));
         jPanelNode.add(panel1, new GridConstraints(0, 1, 1, 1, ANCHOR_NORTH, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED, null, null, null));
         jPanelNode.add(panel2, new GridConstraints(1, 0, 1, 1, ANCHOR_NORTH, FILL_NONE, SIZEPOLICY_FIXED, SIZEPOLICY_FIXED, null, null, null));
