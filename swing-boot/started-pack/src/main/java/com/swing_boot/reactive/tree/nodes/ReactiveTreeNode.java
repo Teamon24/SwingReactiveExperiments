@@ -2,10 +2,12 @@ package com.swing_boot.reactive.tree.nodes;
 
 import com.swing_boot.reactive.Events;
 import com.swing_boot.reactive.tree.threads.ReactiveTreeThreads;
+import com.swing_boot.reactive.tree.threads.TreeNodeRunnable;
 import com.swing_boot.reactive.tree.utils.LogUtils;
 import com.swing_boot.reactive.tree.utils.TreeUtils;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +35,8 @@ public abstract class ReactiveTreeNode<It extends Component>
     }
 
     @Getter
-    protected Set<Events> consumableEvents = new LinkedHashSet<>();
+    @Setter
+    protected Set<Class<? extends Events>> consumableEvents = new LinkedHashSet<>();
 
     @Getter
     protected Set<Events> emittedEvents = new LinkedHashSet<>();
@@ -51,16 +54,17 @@ public abstract class ReactiveTreeNode<It extends Component>
         this.name = "default_node_name";
     }
 
-    public void dispatch(@NonNull final ReactiveTreeNode<?> dispatchingChild,
-                         @NonNull final Events event,
-                         @NonNull final Object message) {
+    public void dispatchUp(@NonNull final ReactiveTreeNode<?> dispatchingChild,
+                           @NonNull final Events event,
+                           @NonNull final Object message) {
 
 
 
         if (this.hasParent()) {
             if (this.parent.hasOnlyOneChild()) {
-                this.parent.dispatch(this, event, message);
+                this.parent.dispatchUp(this, event, message);
             } else {
+//                ReactiveTreeThreads.execute(dispatchingUp(this, dispatchingChild, event, message));
                 ReactiveTreeThreads.dispatchUp(this, dispatchingChild, event, message);
             }
         }
@@ -79,32 +83,36 @@ public abstract class ReactiveTreeNode<It extends Component>
             this.update(event, message);
         }
 
-        final ReactiveTreeNode<?> nextChildForDispatching = this.getChildForThread(dispatchingChild);
+        final Collection<Class<? extends Events>> childrenConsumableEvents = TreeUtils.getAllConsumableEventsBelow(this);
+        LogUtils.LOGGER.soutln(this, "childrenConsumableEvents", childrenConsumableEvents);
+        ReactiveTreeNode<?> nextChildForDispatching;
 
-        for (ReactiveTreeNode<?> currentChild : this.children) {
+        if (!TreeUtils.isEventConsumable(childrenConsumableEvents, event)) {
+            return;
+        }
 
-            if (dispatchingChild != currentChild) {
+        if (this.hasOnlyOneChild()) {
+            nextChildForDispatching = this.getChildren().get(0);
+            LogUtils.LOGGER.soutln(nextChildForDispatching, "dispatchDown", event, message);
+            nextChildForDispatching.dispatchDown(nextChildForDispatching, event, message);
+        }
 
-                final Collection<Events> childrenConsumableEvents = TreeUtils.getAllConsumableEventsBelow(this);
-                LogUtils.LOGGER.soutln(currentChild, "childrenConsumableEvents", childrenConsumableEvents);
-                if (TreeUtils.isEventConsumable(childrenConsumableEvents, event)) {
-
-                    if (nextChildForDispatching != null && nextChildForDispatching == currentChild) {
-
+        if (this.hasMoreOneChild()) {
+            nextChildForDispatching = this.getChildForThread(dispatchingChild);
+            for (ReactiveTreeNode<?> currentChild : this.children) {
+                if (dispatchingChild != currentChild) {
+                    if (this.hasMoreOneChild() && nextChildForDispatching == currentChild) {
                         LogUtils.LOGGER.soutln(nextChildForDispatching, "dispatchDown", event, message);
                         nextChildForDispatching.dispatchDown(nextChildForDispatching, event, message);
 
-                    } else if (this.hasOnlyOneChild()) {
-
-                        LogUtils.LOGGER.soutln(currentChild, "dispatchDown", event, message);
-                        currentChild.dispatchDown(currentChild, event, message);
-
                     } else {
+//                        ReactiveTreeThreads.execute(dispatchingDown(currentChild, event, message));
                         ReactiveTreeThreads.dispatchDown(currentChild, event, message);
                     }
                 }
             }
         }
+
     }
 
     private boolean hasNoParent() {
@@ -124,10 +132,6 @@ public abstract class ReactiveTreeNode<It extends Component>
     }
 
     private ReactiveTreeNode<?> getChildForThread(@NonNull final ReactiveTreeNode<?> dispatchingChild) {
-        if (this.hasNoChildren()) {
-            return null;
-        }
-
         int i = RandomUtils.nextInt(0, this.children.size());
         ReactiveTreeNode<?> childForCurrentThread = this.children.get(i);
         while (dispatchingChild == childForCurrentThread) {
@@ -165,7 +169,53 @@ public abstract class ReactiveTreeNode<It extends Component>
         return StringUtils.join(grandParentGeneology, this.name, ".");
     }
 
+    /**
+     * @param dispatchingNode
+     * @param event
+     * @param message
+     * @return
+     */
+    private static TreeNodeRunnable dispatchingUp(@NonNull final ReactiveTreeNode<?> dispatchingNode,
+                                                  @NonNull final ReactiveTreeNode<?> dispatchingChild,
+                                                  @NonNull final Events event,
+                                                  @NonNull final Object message)
+    {
+        return
+                new TreeNodeRunnable(dispatchingNode, dispatchingChild, event, message) {
+                    @Override
+                    public void run() {
+                        TreeNodeRunnable runnable = this;
+                        runnable.dispatchingNode.getParent().dispatchUp(
+                                runnable.dispatchingChild,
+                                runnable.event,
+                                runnable.message
+                        );
+                    }
+                };
+    }
 
+    /**
+     * @param dispatchingNode
+     * @param event
+     * @param message
+     * @return
+     */
+    private static TreeNodeRunnable dispatchingDown(@NonNull final ReactiveTreeNode<?> dispatchingNode,
+                                                    @NonNull final Events event,
+                                                    @NonNull final Object message)
+    {
+        return new TreeNodeRunnable(dispatchingNode, dispatchingNode, event, message) {
+            @Override
+            public void run() {
+                TreeNodeRunnable runnable = this;
+                runnable.dispatchingNode.dispatchDown(
+                        runnable.dispatchingNode,
+                        runnable.event,
+                        runnable.message
+                );
+            }
+        };
+    }
 
     @Override
     public String toString() {

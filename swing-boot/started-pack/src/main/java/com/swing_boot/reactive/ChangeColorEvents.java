@@ -4,21 +4,24 @@ import java.awt.Color;
 
 public class ChangeColorEvents implements Events {
 
-    public static final ChangeColorEvents TYPE = new ChangeColorEvents(null);
-
     public final Color color;
 
     public ChangeColorEvents(Color color) {
         this.color = color;
     }
 
-    public Events getType() {
-        return TYPE;
-    }
-
     @Override
     public String toString() {
         String template = "{%s: [r=%d,g=%d,b=%d]}";
-        return this.color == null ? "ChangeColorEvent.TYPE" : String.format(template, "color", this.color.getRed(), this.color.getGreen(), this.color.getBlue());
+        return this.color == null ? "{no color}" : String.format(template, "color", this.color.getRed(), this.color.getGreen(), this.color.getBlue());
+    }
+
+    public static class ClearColor extends ChangeColorEvents {
+
+        public static final ClearColor CLEAR_COLOR = new ClearColor();
+
+        private ClearColor() {
+            super(Color.WHITE);
+        }
     }
 }

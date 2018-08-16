@@ -36,43 +36,22 @@ public final class NodeSearchFrame extends RandomColorFrame {
         nodeSearchFrame.it.setPreferredSize(new Dimension(300, 300));
         nodeSearchFrame.it.setMinimumSize(new Dimension(300, 300));
         nodeSearchFrame.it.setSize(new Dimension(300, 300));
+        nodeSearchFrame.it.setAlwaysOnTop(true);
 
         final JTextField threadAmountArea = new JTextField();
         threadAmountArea.getDocument().addDocumentListener(new DocumentListener() {
 
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
+            @Override public void insertUpdate(DocumentEvent e) {}
+            @Override public void removeUpdate(DocumentEvent e) {}
+            @Override public void changedUpdate(DocumentEvent e) {}
 
         });
 
         final JTextField threadSleepMillisArea = new JTextField();
         threadSleepMillisArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
+            @Override public void insertUpdate(DocumentEvent e) {}
+            @Override public void removeUpdate(DocumentEvent e) {}
+            @Override public void changedUpdate(DocumentEvent e) {}
         });
 
         final JTextComponentNode<JTextField> threadsAmount = new JTextFieldNode(threadAmountArea, "");
@@ -84,21 +63,21 @@ public final class NodeSearchFrame extends RandomColorFrame {
             public void insertUpdate(@NonNull final DocumentEvent e) {
                 final Document document = e.getDocument();
                 final String text = getText(document);
-                nodeSearchFrame.dispatch(nodeSearchFrame, SearchEvents.SEARCH_NODE_BY_NAME, text);
+                nodeSearchFrame.dispatchUp(nodeSearchFrame, SearchEvents.SEARCH_NODE_BY_NAME, text);
             }
 
             @Override
             public void removeUpdate(@NonNull final DocumentEvent e) {
                 final Document document = e.getDocument();
                 final String text = getText(document);
-                nodeSearchFrame.dispatch(nodeSearchFrame, SearchEvents.SEARCH_NODE_BY_NAME, text);
+                nodeSearchFrame.dispatchUp(nodeSearchFrame, SearchEvents.SEARCH_NODE_BY_NAME, text);
             }
 
             @Override
             public void changedUpdate(@NonNull final DocumentEvent e) {
                 final Document document = e.getDocument();
                 final String text = getText(document);
-                nodeSearchFrame.dispatch(nodeSearchFrame, SearchEvents.SEARCH_NODE_BY_NAME, text);
+                nodeSearchFrame.dispatchUp(nodeSearchFrame, SearchEvents.SEARCH_NODE_BY_NAME, text);
             }
         });
 
@@ -112,9 +91,13 @@ public final class NodeSearchFrame extends RandomColorFrame {
 
         containerNode.add(new JTextComponentNode<JTextArea>(jTextArea, "searchTextArea") { public void update(Events e, Object v) {} });
 
-        final JButtonNode jButtonNode = new JButtonNode(new JButton("Очистить"), "clearColorButton") { public void update(Events e, Object v) {}};
-        jButtonNode.addDispatcher(actionEvent -> jButtonNode.dispatch(jButtonNode, new ChangeColorEvents(Color.WHITE), 0));
-        containerNode.add(jButtonNode);
+        final JButtonNode clearButton = new JButtonNode(new JButton("Очистить"), "clearColorButton") { public void update(Events e, Object v) {}};
+        clearButton.addActionDispatcher(actionEvent -> clearButton.dispatchUp(clearButton, ChangeColorEvents.ClearColor.CLEAR_COLOR, 0));
+        containerNode.add(clearButton);
+
+        final JButtonNode debugButton = new JButtonNode(new JButton("Окрасить"), "debugButton") { public void update(Events e, Object v) {}};
+        debugButton.addActionDispatcher(actionEvent -> debugButton.dispatchUp(debugButton, new ChangeColorEvents(new Color(34, 34, 34)), 1));
+        containerNode.add(debugButton);
         nodeSearchFrame.addRoot(containerNode);
     }
 

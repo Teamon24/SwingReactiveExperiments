@@ -22,8 +22,8 @@ public final class TreeUtils {
         return names;
     }
 
-    public static Collection<Events> getAllConsumableEventsBelow(@NonNull final ReactiveTreeNode<?> reactiveTreeNode) {
-        LinkedHashSet<Events> acceptable = new LinkedHashSet<>();
+    public static Collection<Class<? extends Events>> getAllConsumableEventsBelow(@NonNull final ReactiveTreeNode<?> reactiveTreeNode) {
+        LinkedHashSet<Class<? extends Events>> acceptable = new LinkedHashSet<>();
         for (ReactiveTreeNode<?> child : reactiveTreeNode.getChildren()) {
             acceptable.addAll(child.getConsumableEvents());
             acceptable.addAll(TreeUtils.getAllConsumableEventsBelow(child));
@@ -40,15 +40,13 @@ public final class TreeUtils {
         return emittedEvents;
     }
 
-    public static boolean isEventConsumable(Collection<? extends Events> grandChildrenConsumableEvents, Events event) {
-        for (Events grandChildEvent : grandChildrenConsumableEvents) {
-            if (event == grandChildEvent) {
+    public static boolean isEventConsumable(Collection<Class<? extends Events>> grandChildrenConsumableEvents, Events event) {
+        for (Class<? extends Events> grandChildEvent : grandChildrenConsumableEvents) {
+            if (event.getClass().equals(grandChildEvent)) {
                 return true;
             }
 
-            if (grandChildEvent.getClass().equals(event.getClass())) {
-                return true;
-            }
+
         }
 
         return false;

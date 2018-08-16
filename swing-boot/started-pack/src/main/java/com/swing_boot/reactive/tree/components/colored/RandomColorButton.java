@@ -11,8 +11,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.JButton;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,8 +24,8 @@ public class RandomColorButton extends JButtonNode {
     private Color color;
 
     {
-        super.consumableEvents.addAll(Sets.newHashSet(ChangeColorEvents.TYPE));
-        super.consumableEvents.addAll(Sets.newHashSet(SearchEvents.values()));
+        super.consumableEvents.addAll(Sets.newHashSet(ChangeColorEvents.class, ChangeColorEvents.ClearColor.class));
+        super.consumableEvents.addAll(Sets.newHashSet(SearchEvents.class));
     }
 
     public RandomColorButton() {
@@ -38,12 +36,7 @@ public class RandomColorButton extends JButtonNode {
         super(new JButton(), nodeName);
         this.number = counter.get();
         super.it.setText("#" + this.number);
-        super.addDispatcher(actionListener -> {
-            Object message = 1;
-            final HashSet<Pair<Events, Object>> pairs = Sets.newHashSet(Pair.of((Events) new ChangeColorEvents(new Color(34, 34, 34)), message));
-            final ActionListener dispatcher = RandomColorButton.super.getDispatcher(pairs);
-            dispatcher.actionPerformed(actionListener);
-        });
+        super.addActionDispatcher(actionEvent -> super.dispatchUp(this, new ChangeColorEvents(new Color(34, 34, 34)), 1));
     }
 
     public void update(Events e, Object v) {

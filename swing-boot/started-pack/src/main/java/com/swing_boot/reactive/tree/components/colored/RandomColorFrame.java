@@ -16,8 +16,8 @@ public class RandomColorFrame extends JFrameNode<JFrame> {
     private static int counter;
 
     {
-        super.consumableEvents.addAll(Sets.newHashSet(ChangeColorEvents.TYPE));
-        super.consumableEvents.addAll(Sets.newHashSet(SearchEvents.values()));
+        super.consumableEvents.addAll(Sets.newHashSet(ChangeColorEvents.class, ChangeColorEvents.ClearColor.class ));
+        super.consumableEvents.addAll(Sets.newHashSet(SearchEvents.class));
     }
 
     public RandomColorFrame() {

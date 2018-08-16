@@ -15,7 +15,7 @@ public final class LogUtils {
 
     public static final LogUtils LOGGER = new LogUtils();
     private static final StringBuilder history = new StringBuilder();
-    private static final StringBuilder builder = new StringBuilder();
+    private static StringBuilder builder = new StringBuilder();
 
     private LogUtils() {}
 
@@ -182,6 +182,7 @@ public final class LogUtils {
         final String unfiltered = builder.toString();
         System.out.println(unfiltered);
 
+        if(!exclusions.isEmpty()) {}
         final StringBuilder notExculded = new StringBuilder();
         final String[] splits = unfiltered.split("\n");
 
@@ -199,6 +200,7 @@ public final class LogUtils {
                 }
         }
 
+        if (!filters.isEmpty()) {}
         final StringBuilder filtered = new StringBuilder();
         final String[] splits2 = notExculded.toString().split("\n");
         for (String split : splits2) {
@@ -214,9 +216,6 @@ public final class LogUtils {
                 filtered.append(split).append("\n");
             }
         }
-
-        System.out.println(filtered.toString().isEmpty() ? builder.toString() : filtered.toString());
-        history.append(builder.toString());
-        builder.delete(0, builder.toString().length());
+        builder = new StringBuilder();
     }
 }

@@ -20,8 +20,8 @@ public class RandomColorScrollPane extends JScrollPaneNode<JScrollPane> {
     private Color color;
 
     {
-        super.consumableEvents.addAll(Sets.newHashSet(ChangeColorEvents.TYPE));
-        super.consumableEvents.addAll(Sets.newHashSet(SearchEvents.values()));
+        super.consumableEvents.addAll(Sets.newHashSet(ChangeColorEvents.class, ChangeColorEvents.ClearColor.class));
+        super.consumableEvents.addAll(Sets.newHashSet(SearchEvents.class));
     }
 
     protected RandomColorScrollPane() {

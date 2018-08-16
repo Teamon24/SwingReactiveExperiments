@@ -37,7 +37,7 @@ public class DebugReactiveTree {
         testableFrame2.it.setLocation(screenSize.width / 2 , 0);
         testableFrame2.it.setVisible(true);
 
-        final RandomColorFrame testableFrame3 = RandomColorFrameCreator.createTestableFrame(treeDepth);
+        /*final RandomColorFrame testableFrame3 = RandomColorFrameCreator.createTestableFrame(treeDepth);
         APP_ROOT.addChild(testableFrame3);
         testableFrame3.it.setSize(new Dimension(screenSize.width/2, screenSize.height/2));
         testableFrame3.it.setLocation(screenSize.width / 2,  screenSize.height / 2);
@@ -47,7 +47,7 @@ public class DebugReactiveTree {
         APP_ROOT.addChild(testableFrame4);
         testableFrame4.it.setSize(new Dimension(screenSize.width/2, screenSize.height/2));
         testableFrame4.it.setLocation(0, screenSize.height / 2);
-        testableFrame4.it.setVisible(true);
+        testableFrame4.it.setVisible(true);*/
 
         final JFrameNode<JFrame> searchFrame = NodeSearchFrame.instance();
         APP_ROOT.addChild(searchFrame);
@@ -56,7 +56,7 @@ public class DebugReactiveTree {
         APP_ROOT.addChild(
                 new JFrameNode<JFrame>(new JFrame(), "appRootInfo") {
                     {
-                        super.consumableEvents.addAll(Sets.newHashSet(CommonEvents.PRINT_APP_ROOT_INFO));
+                        super.consumableEvents.addAll(Sets.newHashSet(CommonEvents.class));
                         SwingUtilities.invokeLater(() -> {
                                 super.it.setTitle(super.name);
                                 super.it.setSize(new Dimension(350, 10));

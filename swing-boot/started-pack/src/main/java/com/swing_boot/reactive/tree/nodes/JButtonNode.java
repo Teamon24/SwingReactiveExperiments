@@ -5,7 +5,6 @@ import lombok.NonNull;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.JButton;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Set;
 
@@ -19,18 +18,18 @@ public abstract class JButtonNode extends JComponentNode<JButton> {
         super(jButton);
     }
 
-    public void addDispatcher(@NonNull final Set<Pair<Events, Object>> dispatchables) {
+    public void addActionDispatcher(@NonNull final Set<Pair<Events, Object>> dispatchables) {
         super.it.addActionListener(getDispatcher(dispatchables));
     }
 
-    public void addDispatcher(@NonNull final ActionListener actionListener) {
+    public void addActionDispatcher(@NonNull final ActionListener actionListener) {
         super.it.addActionListener(actionListener);
     }
 
     public ActionListener getDispatcher(@NonNull final Set<Pair<Events, Object>> dispatchibles) {
         return actionListener -> {
             for (Pair<Events, Object> dispatchible : dispatchibles) {
-                JButtonNode.super.dispatch(JButtonNode.this, dispatchible.getLeft(), dispatchible.getRight());
+                JButtonNode.super.dispatchUp(JButtonNode.this, dispatchible.getLeft(), dispatchible.getRight());
             }
         };
     }
