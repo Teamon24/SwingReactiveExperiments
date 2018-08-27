@@ -4,14 +4,14 @@ import com.google.common.collect.Sets;
 import com.swing_boot.reactive.tree.nodes.JScrollPaneNode;
 import com.swing_boot.reactive.ChangeColorEvents;
 import com.swing_boot.reactive.Events;
-import com.swing_boot.reactive.tree.utils.LogUtils;
+import com.swing_boot.reactive.tree.utils.Log;
 import com.swing_boot.reactive.SearchEvents;
 
 import javax.swing.JScrollPane;
 import javax.swing.border.TitledBorder;
 import java.awt.Color;
 
-import static com.swing_boot.reactive.tree.components.colored.NodeSearchFrame.FOUND_BACKGROUND;
+import static com.swing_boot.reactive.tree.components.colored.DebugFrame.FOUND_BACKGROUND;
 
 public class RandomColorScrollPane extends JScrollPaneNode<JScrollPane> {
 
@@ -30,7 +30,7 @@ public class RandomColorScrollPane extends JScrollPaneNode<JScrollPane> {
     }
 
     @Override
-    public void update(Events e, Object v) {
+    public synchronized void update(Events e, Object v) {
         if (v instanceof Integer && e instanceof ChangeColorEvents) {
             final Integer i = (Integer) v;
             final ChangeColorEvents changeColorEvent = (ChangeColorEvents) e;
@@ -44,7 +44,7 @@ public class RandomColorScrollPane extends JScrollPaneNode<JScrollPane> {
 
             this.border.setTitleColor(Color.WHITE);
             this.border.setTitle(super.name + " <- " + i);
-            LogUtils.LOGGER.soutln(this, "update", e, v);
+            Log.logger.log(this, "update", e, v);
         }
 
         if (e == SearchEvents.SEARCH_NODE_BY_NAME && v instanceof String) {
@@ -55,7 +55,7 @@ public class RandomColorScrollPane extends JScrollPaneNode<JScrollPane> {
                 final boolean startsWith = text.startsWith(searchingText);
                 if (contains && startsWith) {
                     super.it.setBackground(FOUND_BACKGROUND);
-                    LogUtils.LOGGER.soutln(this, "update", e, v);
+                    Log.logger.log(this, "update", e, v);
                 } else {
                     super.it.setBackground(this.color);
                 }

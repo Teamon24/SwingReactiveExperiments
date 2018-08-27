@@ -3,8 +3,9 @@ package com.swing_boot.reactive.tree.threads;
 import com.google.common.collect.Sets;
 import com.swing_boot.reactive.ChangeColorEvents;
 import com.swing_boot.reactive.Events;
+import com.swing_boot.reactive.tree.components.colored.DebugFrame;
 import com.swing_boot.reactive.tree.nodes.ReactiveTreeNode;
-import com.swing_boot.reactive.tree.utils.LogUtils;
+import com.swing_boot.reactive.tree.utils.Log;
 import lombok.NonNull;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -12,92 +13,86 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.swing_boot.reactive.ChangeColorEvents.ClearColor.CLEAR_COLOR;
+import static com.swing_boot.reactive.tree.utils.Log.TIME_FORMAT;
 
-public class ReactiveTreeThreads {
+public final class ReactiveTreeThreads {
 
-    public static ConcurrentLinkedDeque<FutureTask<Long>> tasks = new ConcurrentLinkedDeque<>();
+    private ReactiveTreeThreads() {}
 
-    public volatile static Long start = 0L;
-    public volatile static Long stop = 0L;
+    @Override
+    public String toString() { return "ReactiveTreeThreads{}"; }
 
-    public static ExecutorService executor = Executors.newFixedThreadPool(1000);
+    private static ReactiveTreeThreads INSTANCE = new ReactiveTreeThreads();
+    public final static ConcurrentLinkedDeque<Future<Pair<Object, Long>>> TASKS = new ConcurrentLinkedDeque<>();
 
-    public static Boolean timerIsOn = false;
+    private static AtomicLong start = new AtomicLong(0L);
+    private static AtomicLong stop = new AtomicLong(0L);
+    private static final int threadSleep = 0;
+    private static ExecutorService executor = Executors.newFixedThreadPool(1000);
 
-    public static Collection<Integer> usedDigit = new ArrayList<>();
+    private static Collection<Integer> usedDigit = new ArrayList<>();
+    private static long waitForLastThread = (long) (0.5 * 200);
+    private static boolean debugIsOn = true;
 
-    public static long waitForLastThread = (long) (0.5 * 1000);
-
-    public static boolean debugIsOn = true;
 
     public static void execute(@NonNull final TreeNodeRunnable runnable) {
-        execute(new FutureTask<>(debugIsOn ? getDebugger(runnable) : getTimer(runnable)));
+        execute(debugIsOn ? getDebugger(runnable) : getTimer(runnable));
     }
 
-    private static Callable<Long> getTimer(@NonNull final TreeNodeRunnable runnable) {
+    private static Callable<Pair<Object, Long>> getTimer(@NonNull final TreeNodeRunnable runnable) {
         return () -> {
-                start = start == null ? System.currentTimeMillis() : null;
+                start.set(System.currentTimeMillis());
                 runnable.run();
-                return System.currentTimeMillis();
+                return Pair.of(runnable.message, System.currentTimeMillis());
             };
     }
 
-    private static Callable<Long> getDebugger(@NonNull final TreeNodeRunnable runnable) {
-        runnable.dispatchingNode.setConsumableEvents(Sets.newHashSet(
-                ChangeColorEvents.class,
-                ChangeColorEvents.ClearColor.class)
-        );
-            final Pair<ChangeColorEvents, Integer> eventAndMessage = getDebugEventAndMessage();
-            runnable.event = eventAndMessage.getLeft();
-            runnable.message = eventAndMessage.getRight();
+    private static Callable<Pair<Object, Long>> getDebugger(@NonNull final TreeNodeRunnable runnable) {
 
-        if (runnable.event.getClass().equals(ChangeColorEvents.ClearColor.class)); {
+        runnable.dispatchingNode.setConsumableEvents(
+                Sets.newHashSet(
+                    ChangeColorEvents.class,
+                    ChangeColorEvents.ClearColor.class));
+
+        final Pair<ChangeColorEvents, Integer> eventAndMessage = getDebugEventAndMessage();
+        runnable.event = eventAndMessage.getLeft();
+        runnable.message = eventAndMessage.getRight();
+
+        if (runnable.event.getClass().equals(ChangeColorEvents.ClearColor.class)) {
             runnable.event = ChangeColorEvents.ClearColor.CLEAR_COLOR;
             runnable.message = 0;
         }
         return getTimer(runnable);
     }
 
-    private static void execute(FutureTask<Long> futureTask) {
-        tasks.add(futureTask);
-        if (!timerIsOn) {
-            countTime();
-        }
-        executor.execute(futureTask);
-        timerIsOn = true;
-    }
-
     /**
-     *
      * @param node
-     * @param dispatchingNode
+     * @param dispatchedNode
      * @param event
      * @param message
      */
     public static void dispatchUp(
             @NonNull final ReactiveTreeNode<?> node,
-            @NonNull final ReactiveTreeNode<?> dispatchingNode,
+            @NonNull final ReactiveTreeNode<?> dispatchedNode,
             @NonNull final Events event,
             @NonNull final Object message)
     {
         logoutAboutEmitting(node, event, message);
-        final Callable<Long> callable = dispatchUpFunc(node, dispatchingNode, event, message);
-        execute(new FutureTask<Long>(callable));
+        execute(dispatchingUp(node, dispatchedNode, event, message));
     }
 
     /**
-     *
      * @param node
      * @param event
      * @param message
@@ -108,8 +103,21 @@ public class ReactiveTreeThreads {
             @NonNull final Object message)
     {
         logoutAboutEmitting(node, event, message);
-        final Callable<Long> callable = dispatchDownFunc(node, event, message);
-        execute(new FutureTask<Long>(callable));
+        execute(dispatchingDown(node, event, message));
+    }
+
+    private static void execute(Callable<Pair<Object, Long>> futureTask) {
+
+        Log.logger.log(INSTANCE, "execute pre_If ", "start = %s", start.get());
+        if (start.get() == 0L) {
+            Log.logger.log(INSTANCE, "execute post_If ", "start = %s", start.get());
+            countTime();
+        }
+        Log.logger.log(executor.getClass(), "execute", "task =  %s", futureTask);
+        Log.logger.log(executor.getClass(), "isShutdown", executor.isShutdown());
+        Log.logger.log(executor.getClass(), "isTerminated", executor.isTerminated());
+        final Future<Pair<Object, Long>> result = executor.submit(futureTask);
+        TASKS.add(result);
     }
 
     /**
@@ -118,9 +126,9 @@ public class ReactiveTreeThreads {
      * @param message
      * @return
      */
-    private static Callable<Long> dispatchDownFunc(@NonNull final ReactiveTreeNode<?> node,
-                                                   @NonNull final Events event,
-                                                   @NonNull final Object message) {
+    private static Callable<Pair<Object, Long>> dispatchingDown(@NonNull final ReactiveTreeNode<?> node,
+                                                                @NonNull final Events event,
+                                                                @NonNull final Object message) {
         return () -> {
             if (event instanceof ChangeColorEvents) {
                 final Pair<ChangeColorEvents, Integer> eventAndMessage = getDebugEventAndMessage();
@@ -139,7 +147,7 @@ public class ReactiveTreeThreads {
                 node.dispatchDown(node, event, message);
             }
             final long result = System.currentTimeMillis();
-            return result;
+            return Pair.of(message, result);
         };
     }
 
@@ -149,12 +157,16 @@ public class ReactiveTreeThreads {
      * @param message
      * @return
      */
-    private static Callable<Long> dispatchUpFunc(@NonNull final ReactiveTreeNode<?> node,
-                                                 @NonNull final ReactiveTreeNode<?> dispatchingChild,
-                                                 @NonNull final Events event,
-                                                 @NonNull final Object message) {
+    private static Callable<Pair<Object, Long>> dispatchingUp(@NonNull final ReactiveTreeNode<?> node,
+                                                              @NonNull final ReactiveTreeNode<?> dispatchingChild,
+                                                              @NonNull final Events event,
+                                                              @NonNull final Object message)
+    {
         return () -> {
             final ReactiveTreeNode<?> parent = node.getParent();
+            Events fevent = event;
+            Object fmessage = message;
+
             if (event instanceof ChangeColorEvents) {
                 final Pair<ChangeColorEvents, Integer> eventAndMessage = getDebugEventAndMessage();
                 ChangeColorEvents debugEvent = eventAndMessage.getLeft();
@@ -163,13 +175,14 @@ public class ReactiveTreeThreads {
                     debugEvent = CLEAR_COLOR;
                     debugMessage = 0;
                 }
-                parent.dispatchUp(dispatchingChild, debugEvent, debugMessage);
+                fevent = debugEvent;
+                fmessage = debugMessage;
                 usedDigit.remove(debugMessage);
-            } else {
-                parent.dispatchUp(node, event, message);
             }
+
+            parent.dispatchUp(dispatchingChild, fevent, fmessage);
             final long result = System.currentTimeMillis();
-            return result;
+            return Pair.of(message, result);
         };
     }
 
@@ -195,7 +208,8 @@ public class ReactiveTreeThreads {
                 bg = new Color(i / 2, i / 4, i);
             }
 
-        try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); }
+        try {
+            Thread.sleep(threadSleep); } catch (InterruptedException e) { e.printStackTrace(); }
 
         return bg;
     }
@@ -203,79 +217,79 @@ public class ReactiveTreeThreads {
     private static void logoutAboutEmitting(@NonNull final ReactiveTreeNode<?> node,
                                             @NonNull final Events event,
                                             @NonNull final Object message) {
-        if (start == 0L) {
-            start = System.currentTimeMillis();
-            LogUtils.LOGGER.line();
-            LogUtils.LOGGER.soutln(node, "eventEmitting", event, message);
-            LogUtils.LOGGER.line();
+        if (start.get() == 0L) {
+            Log.logger.line();
+            Log.logger.log(node, "eventEmitting", event, message);
+            Log.logger.line();
         }
     }
 
-    static AtomicInteger counter = new AtomicInteger();
+    private static AtomicInteger counter = new AtomicInteger();
+
     private static void countTime() {
-        if (timerIsOn) return;
+        if (start.get() == 0L) {
+            Thread timer = new Thread(() -> {
+                while (true) {
 
-        Thread timer = new Thread(() -> {
-            while (true) {
-                if (areTasksDone()) {
-                    sleep(waitForLastThread);
-                }
-                if (areTasksDone()) {
-                    stop = getLastTaskResult();
-                    LogUtils.LOGGER.line();
-                    LogUtils.LOGGER.date(LogUtils.dateColor).thread().counter().text("время начала     диспатчинга: ").time(start).ln();
-                    LogUtils.LOGGER.line();
-                    LogUtils.LOGGER.date(LogUtils.dateColor).thread().counter().text("время окончания  диспатчинга: ").time(stop).ln();
-                    LogUtils.LOGGER.line();
-                    LogUtils.LOGGER.date(LogUtils.dateColor).thread().counter().text("время выполнения диспатчинга: ").time(stop - start).ln();
-                    LogUtils.LOGGER.line().ln().ln().flush();
-                    timerIsOn = false;
-                    start = 0L;
-                    return;
-                }
-            }
-        });
-        timer.setName("Timer-Thread#" + counter.incrementAndGet());
-        timer.start();
+                    if (tasksAreDone()) {
+                        sleep(waitForLastThread);
+                    }
 
-    }
-
-    private static boolean areTasksDone() {
-        boolean isDone = true;
-        for (FutureTask<Long> task : tasks) {
-            if (!task.isDone()) {
-                isDone = false;
-                break;
-            }
-        }
-        return isDone;
-    }
-
-    private static Long getLastTaskResult() {
-        try {
-
-            final LinkedList<FutureTask<Long>> list = new LinkedList<>(tasks);
-            Collections.sort(
-                    list,
-                    (o1, o2) -> {
+                    if (tasksAreDone()) {
+                        Log.logger.log(INSTANCE, "tasksAreDone", true);
                         try {
-                            return o1.get().compareTo(o2.get());
+                            stop.set(TASKS.getLast().get().getRight());
                         } catch (InterruptedException | ExecutionException e) {
                             e.printStackTrace();
                         }
-                        return 0;
-                    });
 
-            return list.getLast().get();
-        } catch (NullPointerException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+                        Log.logger.line();
+                        Log.logger.time("время начала     диспатчинга: %s", start.get());
+                        Log.logger.time("время окончания  диспатчинга: %s", stop.get());
+                        Log.logger.time("время выполнения диспатчинга: %s", stop.get() - start.get());
+                        Log.logger.line();
+
+                        StringBuilder a = new StringBuilder();
+                        int i = 0;
+
+                        for (final Future<Pair<Object, Long>> result : TASKS) {
+                            try {
+                                a.append(result.toString())
+                                        .append(" №").append(++i)
+                                        .append(" is done ? ").append(result.isDone())
+                                        .append("time: ").append(TIME_FORMAT.format(new Date(result.get().getValue() - start.get()))).append("\n");
+                            } catch (InterruptedException | ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        Log.logger.log(DebugFrame.instance(), "task info\n", a.toString());
+                        TASKS.clear();
+                        start.set(0L);
+                        return;
+                    }
+                }
+            });
+
+            timer.setName("Timer-Thread#" + counter.incrementAndGet());
+            start.set(System.currentTimeMillis());
+            timer.start();
         }
-        return 0L;
+    }
+
+    private static boolean tasksAreDone() {
+        for (Future task : TASKS) {
+            final boolean taskIsNotDoneYet = !task.isDone();
+            if (taskIsNotDoneYet) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void sleep(long millis) {
         try {
-            LogUtils.LOGGER.date().thread().counter().sout("sleep", "\"waiting for last thread\"").ln().flush();
+            Log.logger.log(ReactiveTreeThreads.INSTANCE, "sleep", "\"waiting for last thread\"");
             Thread.sleep(millis);
         } catch (InterruptedException e) {
             e.printStackTrace();

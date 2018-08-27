@@ -3,7 +3,7 @@ package com.swing_boot.reactive.tree;
 import com.google.common.collect.Sets;
 import com.swing_boot.reactive.CommonEvents;
 import com.swing_boot.reactive.Events;
-import com.swing_boot.reactive.tree.components.colored.NodeSearchFrame;
+import com.swing_boot.reactive.tree.components.colored.DebugFrame;
 import com.swing_boot.reactive.tree.components.colored.RandomColorFrame;
 import com.swing_boot.reactive.tree.components.colored.RandomColorFrameCreator;
 import com.swing_boot.reactive.tree.components.colored.AppRoot;
@@ -49,7 +49,7 @@ public class DebugReactiveTree {
         testableFrame4.it.setLocation(0, screenSize.height / 2);
         testableFrame4.it.setVisible(true);*/
 
-        final JFrameNode<JFrame> searchFrame = NodeSearchFrame.instance();
+        final JFrameNode<JFrame> searchFrame = DebugFrame.instance();
         APP_ROOT.addChild(searchFrame);
         searchFrame.it.setVisible(true);
 
@@ -66,7 +66,7 @@ public class DebugReactiveTree {
                     }
 
                     @Override
-                    public void update(Events e, Object v) { super.it.setTitle(super.name + ": " + APP_ROOT.it.getTitle()); }
+                    public synchronized void update(Events e, Object v) { super.it.setTitle(super.name + ": " + APP_ROOT.it.getTitle()); }
                 });
 
         PrintUtils.printTreeBranch(APP_ROOT, "", true, true);

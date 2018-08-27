@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import com.swing_boot.reactive.tree.nodes.JPanelNode;
 import com.swing_boot.reactive.ChangeColorEvents;
 import com.swing_boot.reactive.Events;
-import com.swing_boot.reactive.tree.utils.LogUtils;
+import com.swing_boot.reactive.tree.utils.Log;
 import com.swing_boot.reactive.SearchEvents;
 import lombok.NonNull;
 
@@ -14,7 +14,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.Color;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.swing_boot.reactive.tree.components.colored.NodeSearchFrame.FOUND_BACKGROUND;
+import static com.swing_boot.reactive.tree.components.colored.DebugFrame.FOUND_BACKGROUND;
 
 public class RandomColorPanel extends JPanelNode {
 
@@ -40,7 +40,7 @@ public class RandomColorPanel extends JPanelNode {
     }
 
     @Override
-    public void update(@NonNull final Events e, Object v) {
+    public synchronized void update(@NonNull final Events e, Object v) {
 
         if (v instanceof Integer && e instanceof ChangeColorEvents) {
             final Integer i = (Integer) v;
@@ -60,7 +60,7 @@ public class RandomColorPanel extends JPanelNode {
             }
 
             this.border.setTitle(super.name + "~" + i);
-            LogUtils.LOGGER.soutln(this, "update", e, v);
+            Log.logger.log(this, "update", e, v);
             final int i1 = name.length() + String.valueOf(i).length();
             final StringBuilder labelSpaces = new StringBuilder();
             for (int j = 0; j < i1; j++) {
@@ -77,7 +77,7 @@ public class RandomColorPanel extends JPanelNode {
                 final boolean startsWith = text.startsWith(searchingText);
                 if (contains && startsWith) {
                     super.it.setBackground(FOUND_BACKGROUND);
-                    LogUtils.LOGGER.soutln(this, "update", e, v);
+                    Log.logger.log(this, "update", e, v);
                 } else {
                     super.it.setBackground(this.color);
                 }

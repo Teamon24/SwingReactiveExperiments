@@ -6,7 +6,7 @@ import com.swing_boot.reactive.SearchEvents;
 import com.swing_boot.reactive.tree.nodes.ReactiveTreeNode;
 import com.swing_boot.reactive.ChangeColorEvents;
 import com.swing_boot.reactive.Events;
-import com.swing_boot.reactive.tree.utils.LogUtils;
+import com.swing_boot.reactive.tree.utils.Log;
 import lombok.NonNull;
 
 import javax.swing.JFrame;
@@ -24,12 +24,12 @@ public class AppRoot extends ReactiveTreeNode<JFrame> {
     }
 
     @Override
-    public void update(Events e, Object v) {
+    public synchronized void update(Events e, Object v) {
         if (e instanceof ChangeColorEvents) {
             super.it.setTitle(this.name + "<" + String.valueOf(v) + ">");
             super.it.setForeground(Color.WHITE);
             super.it.setBackground(((ChangeColorEvents) e).color);
-            LogUtils.LOGGER.soutln(this, "update", e, v);
+            Log.logger.log(this, "update", e, v);
             super.dispatchUp(this, CommonEvents.PRINT_APP_ROOT_INFO, v);
         }
     }

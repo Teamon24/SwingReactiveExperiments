@@ -3,7 +3,9 @@ package com.swing_boot.reactive.tree.threads;
 import com.swing_boot.reactive.Events;
 import com.swing_boot.reactive.tree.nodes.ReactiveTreeNode;
 import lombok.NonNull;
+import lombok.ToString;
 
+@ToString
 public abstract class TreeNodeRunnable implements Runnable {
 
     public ReactiveTreeNode<?> dispatchingNode;

@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import com.swing_boot.reactive.tree.nodes.JFrameNode;
 import com.swing_boot.reactive.ChangeColorEvents;
 import com.swing_boot.reactive.Events;
-import com.swing_boot.reactive.tree.utils.LogUtils;
+import com.swing_boot.reactive.tree.utils.Log;
 import com.swing_boot.reactive.SearchEvents;
 import lombok.NonNull;
 
@@ -33,7 +33,7 @@ public class RandomColorFrame extends JFrameNode<JFrame> {
 
 
     @Override
-    public void update(Events e, Object v) {
+    public synchronized void update(Events e, Object v) {
         if (e instanceof ChangeColorEvents) {
             super.it.setTitle(this.name + "~" + String.valueOf(v));
             if (((ChangeColorEvents) e).color == Color.WHITE) {
@@ -42,7 +42,7 @@ public class RandomColorFrame extends JFrameNode<JFrame> {
                 super.it.setForeground(Color.WHITE);
             }
             super.it.setBackground(((ChangeColorEvents) e).color);
-            LogUtils.LOGGER.soutln(this, "update", e, v);
+            Log.logger.log(this, "update", e, v);
         }
     }
 }

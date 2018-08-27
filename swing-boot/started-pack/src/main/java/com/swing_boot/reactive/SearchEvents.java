@@ -8,4 +8,9 @@ public enum SearchEvents implements Events {
     public Events getType() {
         return TYPE;
     }
+
+    @Override
+    public String toString() {
+        return "SearchEvents{}";
+    }
 }

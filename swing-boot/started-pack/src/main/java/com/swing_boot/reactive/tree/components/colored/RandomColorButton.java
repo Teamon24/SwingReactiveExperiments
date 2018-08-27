@@ -4,18 +4,15 @@ import com.google.common.collect.Sets;
 import com.swing_boot.reactive.tree.nodes.JButtonNode;
 import com.swing_boot.reactive.ChangeColorEvents;
 import com.swing_boot.reactive.Events;
-import com.swing_boot.reactive.tree.utils.LogUtils;
+import com.swing_boot.reactive.tree.utils.Log;
 import com.swing_boot.reactive.SearchEvents;
 import lombok.NonNull;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.JButton;
 import java.awt.Color;
-import java.awt.event.ActionListener;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.swing_boot.reactive.tree.components.colored.NodeSearchFrame.FOUND_BACKGROUND;
+import static com.swing_boot.reactive.tree.components.colored.DebugFrame.FOUND_BACKGROUND;
 
 public class RandomColorButton extends JButtonNode {
 
@@ -39,7 +36,7 @@ public class RandomColorButton extends JButtonNode {
         super.addActionDispatcher(actionEvent -> super.dispatchUp(this, new ChangeColorEvents(new Color(34, 34, 34)), 1));
     }
 
-    public void update(Events e, Object v) {
+    public synchronized void update(Events e, Object v) {
         if (v instanceof Integer && e instanceof ChangeColorEvents) {
             final Integer i = (Integer) v;
             super.it.setText("b#" + this.number + "~" + String.valueOf(i));
@@ -50,7 +47,7 @@ public class RandomColorButton extends JButtonNode {
             }
             this.color = ((ChangeColorEvents) e).color;
             super.it.setBackground(this.color);
-            LogUtils.LOGGER.soutln(this, "update", e, v);
+            Log.logger.log(this, "update", e, v);
         }
 
         if (e == SearchEvents.SEARCH_NODE_BY_NAME && v instanceof String) {
@@ -61,7 +58,7 @@ public class RandomColorButton extends JButtonNode {
                 final boolean startsWith = text.startsWith(searchingText);
                 if (contains && startsWith) {
                     super.it.setBackground(FOUND_BACKGROUND);
-                    LogUtils.LOGGER.soutln(this, "update", e, v);
+                    Log.logger.log(this, "update", e, v);
                 } else {
                     super.it.setBackground(this.color);
                 }
